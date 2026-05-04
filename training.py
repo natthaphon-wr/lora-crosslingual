@@ -44,9 +44,16 @@ if __name__ == "__main__":
   cols_removed = ["id", "label", "label_text", "text", "lang"]
   data_train = load_from_disk(os.path.join(data_path, "train"))
   data_val = load_from_disk(os.path.join(data_path, "validation"))
-  cols_removed = ["id", "label", "label_text", "text", "lang"]
-  tokenized_train = data_train.map(preprocess, batched=True, remove_columns=cols_removed)
-  tokenized_val = data_val.map(preprocess, batched=True, remove_columns=cols_removed)
+  unique_labels = sorted(list(set(data_train["label_text"])))
+  label_to_id = {label: i for i, label in enumerate(unique_labels)}
+  tokenized_train = data_train.map(preprocess, 
+                                  fn_kwargs={"tokenizer": tokenizer, "label_to_id": label_to_id},
+                                  batched=True, 
+                                  remove_columns=cols_removed)
+  tokenized_val = data_val.map(preprocess, 
+                              fn_kwargs={"tokenizer": tokenizer, "label_to_id": label_to_id},
+                              batched=True, 
+                              remove_columns=cols_removed)
   logging.info("Finished preprocessed dataset")
   logging.info(f"Train: {len(tokenized_train)}, Val: {len(tokenized_val)}")
 
@@ -64,7 +71,7 @@ if __name__ == "__main__":
     eval_strategy = "steps",
     save_strategy = "epoch",
     optim = "adamw_torch",
-    weight_decay = 0.01,
+    weight_decay = weight_decay,
     logging_steps = 50,
     eval_steps = 50,
     bf16 = True,
