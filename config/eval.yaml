@@ -1,0 +1,17 @@
+output_path:
+model:
+  pretrained_model: 
+  lora_model:
+languages:
+  - en
+  - de
+  - es
+  - tr
+  - vi
+  - sw
+  - ar
+  - ru
+  - hi
+  - ja
+  - th
+  - zh-CN
