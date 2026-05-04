@@ -1,0 +1,15 @@
+output:
+  output_path: 
+  hg_name: 
+
+data:
+  data_path: 
+  batch_size: 16
+
+model: 
+  model_id: "Qwen/Qwen2.5-3B"
+  lora_rank: 8
+  lora_dropout: 0.05
+  epoch: 3
+  lr: 0.0001
+  weight_decay: 0.01

@@ -1,8 +1,9 @@
 import argparse
 import logging
 import yaml
+import os
 
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 from transformers import AutoTokenizer, TrainingArguments, Trainer, DataCollatorWithPadding
 
 from dataset import preprocess
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     config = yaml.safe_load(f)
   output_path = config["output"]["output_path"]
   hg_name = config["output"]["hg_name"]
+  data_path = config["data"]["data_path"]
   batch_size = config["data"]["batch_size"]
   model_id = config["model"]["model_id"]
   lora_rank = config["model"]["lora_rank"]
@@ -39,13 +41,14 @@ if __name__ == "__main__":
   tokenizer = AutoTokenizer.from_pretrained(model_id)
   tokenizer.pad_token = tokenizer.eos_token
   tokenizer.padding_side = "right"
-  dataset = load_dataset("mteb/amazon_massive_intent", "en")
   cols_removed = ["id", "label", "label_text", "text", "lang"]
-  tokenized_train = dataset["train"].map(preprocess, batched=True, remove_columns=cols_removed)
-  tokenized_val = dataset["validation"].map(preprocess, batched=True, remove_columns=cols_removed)
-  tokenized_test = dataset["test"].map(preprocess, batched=True, remove_columns=cols_removed)
+  data_train = load_from_disk(os.path.join(data_path, "train"))
+  data_val = load_from_disk(os.path.join(data_path, "validation"))
+  cols_removed = ["id", "label", "label_text", "text", "lang"]
+  tokenized_train = data_train.map(preprocess, batched=True, remove_columns=cols_removed)
+  tokenized_val = data_val.map(preprocess, batched=True, remove_columns=cols_removed)
   logging.info("Finished preprocessed dataset")
-  logging.info(f"Train: {len(tokenized_train)}, Val: {len(tokenized_val)}, Test: {len(tokenized_test)}")
+  logging.info(f"Train: {len(tokenized_train)}, Val: {len(tokenized_val)}")
 
   # Model
   model = create_model(model_id, tokenizer, lora_rank, lora_dropout)
@@ -77,16 +80,3 @@ if __name__ == "__main__":
   )
   trainer.train()
   model.push_to_hub(hg_name) # save model to huggingface
-
-  # Evaluation on English
-  # logging.info("Evalutation on English test set")
-  # eval_result = trainer.evaluate(tokenized_test)
-  # results_path = output_path + "/test_results.txt"
-  # with open(results_path, 'w') as f:
-  #   f.write("Model hyperparameters: \n")
-  #   f.write(f"LoRA rank: {lora_rank}, LoRA dropout: {lora_dropout},\n")
-  #   f.write(f"Epoch: {epoch}, lr: {lr}, weight_decay: {weight_decay}\n")
-  #   f.write("-------------------------------------------------------\n")
-  #   f.write("Evalutation on English test set: \n")
-  #   f.write(f"Loss: {eval_result["eval_loss"]}, Acc: {eval_result["eval_accuracy"]}, F1: {eval_result["eval_f1"]}")
-  # logging.info("Completed save model and training results")
