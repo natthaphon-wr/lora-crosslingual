@@ -3,7 +3,7 @@ import logging
 import yaml
 import os
 
-from datasets import load_dataset, load_from_disk
+from datasets import load_from_disk
 from transformers import AutoTokenizer, TrainingArguments, Trainer, DataCollatorWithPadding
 
 from dataset import preprocess

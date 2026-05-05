@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoModelForSequenceClassification, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftConfig
 
 def create_model(model_id, tokenizer, lora_rank, lora_dropout):
   bnb_config = BitsAndBytesConfig(
@@ -29,3 +29,22 @@ def create_model(model_id, tokenizer, lora_rank, lora_dropout):
   model = get_peft_model(model, peft_config)
 
   return model
+
+def load_saved_model(peft_model_name, tokenizer):
+  bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,
+  )
+  model = AutoModelForSequenceClassification.from_pretrained(
+    peft_model_name,
+    num_labels=60,
+    quantization_config=bnb_config,
+    device_map="auto",
+    trust_remote_code=True)
+  model.config.pad_token_id = tokenizer.pad_token_id
+  lora_config = PeftConfig.from_pretrained(peft_model_name)
+  model_peft = get_peft_model(model, lora_config)
+
+  return model_peft
