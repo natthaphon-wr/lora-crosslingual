@@ -87,3 +87,13 @@ if __name__ == "__main__":
   )
   trainer.train()
   model.push_to_hub(hg_name) # save model to huggingface
+  logging.info("Completed trained model and save model to HuggingFace")
+
+  # Save some results
+  with open(os.path.join(output_path, "model_params.txt"), 'w') as f:
+    f.write("Model hyperparameters: \n")
+    f.write(f"LoRA rank: {lora_rank}, LoRA dropout: {lora_dropout},\n")
+    f.write(f"Epoch: {epoch}, lr: {lr}, weight_decay: {weight_decay}\n")
+    f.write("Model parameters: \n")
+    f.write(model.print_trainable_parameters())
+  logging.info("Completed save model and training results")

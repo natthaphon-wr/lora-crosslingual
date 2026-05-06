@@ -1,7 +1,6 @@
 output_path:
 model:
-  pretrained_model_name: "Qwen/Qwen2.5-3B"
-  peft_model_name:
+  peft_model_id:
 data:
   data_root:
   batch_size: 16
