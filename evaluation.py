@@ -79,4 +79,5 @@ if __name__ == "__main__":
   logging.info(f"Completed evaluate model on all {len(languages)} languages")
   results_df = pd.DataFrame(results_list)
   results_df.to_csv(os.path.join(output_path, "eval_results.csv"))
-  logging.info(f"Completed saved performance results to {os.path.join(output_path, "eval_results.csv")}")
+  fname = "eval_results_" + peft_model_id.split("/")[1] + ".csv"
+  logging.info(f"Completed saved performance results to {fname}")

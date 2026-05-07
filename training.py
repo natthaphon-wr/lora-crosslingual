@@ -36,6 +36,7 @@ if __name__ == "__main__":
   epoch = config["model"]["epoch"]
   lr = config["model"]["lr"]
   weight_decay = config["model"]["weight_decay"]
+  os.makedirs(output_path)
 
   # Dataset
   tokenizer = AutoTokenizer.from_pretrained(model_id)
