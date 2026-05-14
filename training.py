@@ -78,7 +78,7 @@ if __name__ == "__main__":
   #   model = 
   # else: # lora, rslora
   if peft_model == "lora" or peft_model == "rslora":
-    model = create_lora_model(pretrain_model_id, tokenizer, lora_rank, lora_dropout)
+    model = create_lora_model(pretrain_model_id, peft_model, tokenizer, lora_rank, lora_dropout)
   old_stdout = sys.stdout
   sys.stdout = capture_output = io.StringIO()
   model.print_trainable_parameters()
