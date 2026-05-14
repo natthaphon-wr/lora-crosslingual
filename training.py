@@ -21,7 +21,7 @@ logging.basicConfig(
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Arguments for training")
   parser.add_argument("--config_path", type=str, help="YAML configuration")
-
+  
   args = parser.parse_args()
   config_path = args.config_path
 
@@ -39,16 +39,19 @@ if __name__ == "__main__":
     init_r = adalora_config["init_r"]
     target_r = adalora_config["target_r"]
     reg_weight = adalora_config["reg_weight"]
-  elif peft_model == "lora" or peft_model == "rslora":
+    logging.info(f"Training AdaLoRA with initial, target rank: {init_r}, {target_r}")
+  elif peft_model == "lora":
     lora_config = config["model"]["lora_config"]
     lora_rank = lora_config["lora_rank"]
     lora_dropout = lora_config["lora_dropout"]
+    use_rslora = lora_config["use_rslora"]
+    use_dora = lora_config["use_dora"]
+    logging.info(f"Training LoRA with rank: {lora_rank}, with rsLoRA: {use_rslora} and DoRA: {use_dora}")
   else:
     raise ValueError(f"Error: Invalid PEFT model '{peft_model}'. Should be 'lora','rslora', or 'adalora'")
   epoch = config["training"]["epoch"]
   lr = config["training"]["lr"]
   weight_decay = config["training"]["weight_decay"]
-
   os.makedirs(output_path)
 
   # Dataset
@@ -73,9 +76,13 @@ if __name__ == "__main__":
 
   # Model
   if peft_model == "adalora":
-    model = create_adalora_model(pretrain_model_id, tokenizer, init_r, target_r, reg_weight, batch_size, epoch)
-  else: # lora, rslora
-    model = create_lora_model(pretrain_model_id, peft_model, tokenizer, lora_rank, lora_dropout)
+    model = create_adalora_model(pretrain_model_id, tokenizer, 
+                                init_r, target_r, reg_weight, 
+                                batch_size, epoch)
+  else:
+    model = create_lora_model(pretrain_model_id, tokenizer, 
+                            lora_rank, lora_dropout,
+                            use_rslora, use_dora)
   old_stdout = sys.stdout
   sys.stdout = capture_output = io.StringIO()
   model.print_trainable_parameters()
@@ -87,6 +94,7 @@ if __name__ == "__main__":
   with open(os.path.join(output_path, "model_params.txt"), "w") as f:
     f.write("Model hyperparameters: \n")
     f.write(f"LoRA rank: {lora_rank}, LoRA dropout: {lora_dropout},\n")
+    f.write(f"Use rsLoRA: {use_rslora}, use DoRA: {use_dora}\n")
     f.write(f"Epoch: {epoch}, lr: {lr}, weight_decay: {weight_decay}\n")
     f.write("Model parameters: \n")
     f.write(trainable_params_string)

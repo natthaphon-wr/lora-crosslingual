@@ -8,10 +8,12 @@ data:
 
 model: 
   pretrain_model_id: "Qwen/Qwen2.5-3B"
-  peft_model: "lora" # lora, rslora or adalora
+  peft_model: "lora" # lora or adalora
   lora_config:
     lora_rank: 8
     lora_dropout: 0.05
+    use_rslora: 0
+    use_dora: 0
   # adalora_config:
   #   init_r: 12
   #   target_r: 16
