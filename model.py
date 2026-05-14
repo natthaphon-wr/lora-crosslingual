@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftConfig, PeftModel
+from peft import LoraConfig, AdaLoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftConfig, PeftModel
 
 def get_bnb_config():
   bnb_config = BitsAndBytesConfig(
@@ -11,12 +11,12 @@ def get_bnb_config():
   )
   return bnb_config
 
-def create_model(model_id, tokenizer, lora_rank, lora_dropout):
+def create_lora_model(pretrain_model_id, peft_model, tokenizer, lora_rank, lora_dropout):
   bnb_config = get_bnb_config()
 
   # Create model from pretrained model with quantization
   model = AutoModelForSequenceClassification.from_pretrained(
-    model_id,
+    pretrain_model_id,
     num_labels = 60,
     quantization_config = bnb_config,
     device_map = "auto",
@@ -25,20 +25,26 @@ def create_model(model_id, tokenizer, lora_rank, lora_dropout):
   )
   model = prepare_model_for_kbit_training(model)
 
-  # Define LoRA
+  # Define PEFT
+  rslora = True if peft_model == "rslora" else False
   peft_config = LoraConfig(
-      r = lora_rank,
-      lora_alpha = lora_rank * 2,
-      target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-      lora_dropout = lora_dropout,
-      bias = "none",
-      task_type = "SEQ_CLS",
+    r = lora_rank,
+    lora_alpha = lora_rank * 2,
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    lora_dropout = lora_dropout,
+    use_rslora = rslora,
+    bias = "none",
+    task_type = "SEQ_CLS",
   )
 
-  # Merge pretrained model, LoRA
+  # Merge pretrained model with PEFT
   model = get_peft_model(model, peft_config)
 
   return model
+
+# def create_adalora_model():
+
+#   return model
 
 def load_peft_model(peft_model_id):
   # Load config, pretrained model id

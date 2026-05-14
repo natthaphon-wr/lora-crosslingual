@@ -9,7 +9,7 @@ from datasets import load_from_disk
 from transformers import AutoTokenizer, TrainingArguments, Trainer, DataCollatorWithPadding
 
 from dataset import preprocess
-from model import create_model
+from model import create_lora_model
 from eval_metrics import compute_metrics
 
 logging.basicConfig(
@@ -32,16 +32,29 @@ if __name__ == "__main__":
   hg_name = config["output"]["hg_name"]
   data_path = config["data"]["data_path"]
   batch_size = config["data"]["batch_size"]
-  model_id = config["model"]["model_id"]
-  lora_rank = config["model"]["lora_rank"]
-  lora_dropout = config["model"]["lora_dropout"]
-  epoch = config["model"]["epoch"]
-  lr = config["model"]["lr"]
-  weight_decay = config["model"]["weight_decay"]
+  pretrain_model_id = config["model"]["pretrain_model_id"]
+  peft_model = config["model"]["peft_model"]
+  if peft_model == "adalora":
+    adalora_config = config["model"]["adalora_config"]
+    init_r = adalora_config["init_r"]
+    tinit = adalora_config["tinit"]
+    tfinal = adalora_config["tfinal"]
+    deltaT = adalora_config["deltaT"]
+    reg_weight = adalora_config["reg_weight"]
+  elif peft_model == "lora" or peft_model == "rslora":
+    lora_config = config["model"]["lora_config"]
+    lora_rank = lora_config["lora_rank"]
+    lora_dropout = lora_config["lora_dropout"]
+  else:
+    raise ValueError(f"Error: Invalid PEFT model '{peft_model}'.")
+  epoch = config["training"]["epoch"]
+  lr = config["training"]["lr"]
+  weight_decay = config["training"]["weight_decay"]
+
   os.makedirs(output_path)
 
   # Dataset
-  tokenizer = AutoTokenizer.from_pretrained(model_id)
+  tokenizer = AutoTokenizer.from_pretrained(pretrain_model_id)
   tokenizer.pad_token = tokenizer.eos_token
   tokenizer.padding_side = "right"
   cols_removed = ["id", "label", "label_text", "text", "lang"]
@@ -61,7 +74,11 @@ if __name__ == "__main__":
   logging.info(f"Train: {len(tokenized_train)}, Val: {len(tokenized_val)}")
 
   # Model
-  model = create_model(model_id, tokenizer, lora_rank, lora_dropout)
+  # if peft_model == "adalora":
+  #   model = 
+  # else: # lora, rslora
+  if peft_model == "lora" or peft_model == "rslora":
+    model = create_lora_model(pretrain_model_id, tokenizer, lora_rank, lora_dropout)
   old_stdout = sys.stdout
   sys.stdout = capture_output = io.StringIO()
   model.print_trainable_parameters()
