@@ -14,9 +14,7 @@ model:
     lora_dropout: 0.05
   # adalora_config:
   #   init_r: 12
-  #   tinit: 500
-  #   tfinal: 500
-  #   deltaT: 50
+  #   target_r: 16
   #   reg_weight: 0.5
 
 training:

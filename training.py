@@ -9,7 +9,7 @@ from datasets import load_from_disk
 from transformers import AutoTokenizer, TrainingArguments, Trainer, DataCollatorWithPadding
 
 from dataset import preprocess
-from model import create_lora_model
+from model import create_lora_model, create_adalora_model
 from eval_metrics import compute_metrics
 
 logging.basicConfig(
@@ -37,16 +37,14 @@ if __name__ == "__main__":
   if peft_model == "adalora":
     adalora_config = config["model"]["adalora_config"]
     init_r = adalora_config["init_r"]
-    tinit = adalora_config["tinit"]
-    tfinal = adalora_config["tfinal"]
-    deltaT = adalora_config["deltaT"]
+    target_r = adalora_config["target_r"]
     reg_weight = adalora_config["reg_weight"]
   elif peft_model == "lora" or peft_model == "rslora":
     lora_config = config["model"]["lora_config"]
     lora_rank = lora_config["lora_rank"]
     lora_dropout = lora_config["lora_dropout"]
   else:
-    raise ValueError(f"Error: Invalid PEFT model '{peft_model}'.")
+    raise ValueError(f"Error: Invalid PEFT model '{peft_model}'. Should be 'lora','rslora', or 'adalora'")
   epoch = config["training"]["epoch"]
   lr = config["training"]["lr"]
   weight_decay = config["training"]["weight_decay"]
@@ -74,10 +72,9 @@ if __name__ == "__main__":
   logging.info(f"Train: {len(tokenized_train)}, Val: {len(tokenized_val)}")
 
   # Model
-  # if peft_model == "adalora":
-  #   model = 
-  # else: # lora, rslora
-  if peft_model == "lora" or peft_model == "rslora":
+  if peft_model == "adalora":
+    model = create_adalora_model(pretrain_model_id, tokenizer, init_r, target_r, reg_weight, batch_size, epoch)
+  else: # lora, rslora
     model = create_lora_model(pretrain_model_id, peft_model, tokenizer, lora_rank, lora_dropout)
   old_stdout = sys.stdout
   sys.stdout = capture_output = io.StringIO()
