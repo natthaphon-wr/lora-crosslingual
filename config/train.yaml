@@ -7,9 +7,19 @@ data:
   batch_size: 16
 
 model: 
-  model_id: "Qwen/Qwen2.5-3B"
-  lora_rank: 8
-  lora_dropout: 0.05
+  pretrain_model_id: "Qwen/Qwen2.5-3B"
+  peft_model: "lora" # lora, rslora or adalora
+  lora_config:
+    lora_rank: 8
+    lora_dropout: 0.05
+  # adalora_config:
+  #   init_r: 12
+  #   tinit: 500
+  #   tfinal: 500
+  #   deltaT: 50
+  #   reg_weight: 0.5
+
+training:
   epoch: 3
   lr: 0.0001
   weight_decay: 0.01
