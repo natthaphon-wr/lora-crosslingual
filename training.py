@@ -115,7 +115,8 @@ if __name__ == "__main__":
     logging_steps = 50,
     eval_steps = 50,
     bf16 = True,
-    report_to = "none"
+    report_to = "none",
+    warmup_ratio = 0.1
   )
   trainer = Trainer(
     model = model,
