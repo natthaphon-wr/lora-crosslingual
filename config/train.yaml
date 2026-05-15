@@ -11,6 +11,7 @@ model:
   peft_model: "lora" # lora or adalora
   lora_config:
     lora_rank: 8
+    lora_alpha: 16
     lora_dropout: 0.05
     use_rslora: 0
     use_dora: 0

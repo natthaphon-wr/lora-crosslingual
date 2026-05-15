@@ -43,9 +43,10 @@ if __name__ == "__main__":
   elif peft_model == "lora":
     lora_config = config["model"]["lora_config"]
     lora_rank = lora_config["lora_rank"]
+    lora_alpha = lora_config["lora_alpha"]
     lora_dropout = lora_config["lora_dropout"]
-    use_rslora = lora_config["use_rslora"]
-    use_dora = lora_config["use_dora"]
+    use_rslora = bool(lora_config["use_rslora"])
+    use_dora = bool(lora_config["use_dora"])
     logging.info(f"Training LoRA with rank: {lora_rank}, with rsLoRA: {use_rslora} and DoRA: {use_dora}")
   else:
     raise ValueError(f"Error: Invalid PEFT model '{peft_model}'. Should be 'lora','rslora', or 'adalora'")
@@ -81,7 +82,7 @@ if __name__ == "__main__":
                                 batch_size, epoch)
   else:
     model = create_lora_model(pretrain_model_id, tokenizer, 
-                            lora_rank, lora_dropout,
+                            lora_rank, lora_alpha, lora_dropout,
                             use_rslora, use_dora)
   old_stdout = sys.stdout
   sys.stdout = capture_output = io.StringIO()

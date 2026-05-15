@@ -13,7 +13,7 @@ def get_bnb_config():
   return bnb_config
 
 
-def create_lora_model(pretrain_model_id, tokenizer, lora_rank, lora_dropout, use_rslora, use_dora):
+def create_lora_model(pretrain_model_id, tokenizer, lora_rank, lora_alpha, lora_dropout, use_rslora, use_dora):
   bnb_config = get_bnb_config()
 
   # Create model from pretrained model with quantization
@@ -28,7 +28,6 @@ def create_lora_model(pretrain_model_id, tokenizer, lora_rank, lora_dropout, use
   model = prepare_model_for_kbit_training(model)
 
   # Define PEFT LoRA and variants
-  lora_alpha = min(lora_rank * 2, 64) # max alpha is 64
   lora_config = LoraConfig(
     r = lora_rank,
     lora_alpha = lora_alpha,
